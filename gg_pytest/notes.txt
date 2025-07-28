@@ -1,0 +1,101 @@
+Stop Test Suite after N Test Failures in Pytest
+
+pytest main.py -v --maxfail N
+or
+pytest main.py --maxfail=N
+Here,
+N: It states the number of failures after which the user wants the test suite to stop.
+
+
+Pytest in Parallelisation(run the tests in parallel)
+The pytest-xdist library, which is a mere extension of PyTest, helps run the tests in parallel mode and hence, reduces the large execution time.
+pip3 install pytest-xdist
+
+pytest test.py -n <number of workers>
+pytest -n 2
+
+Generate Interactive Output using Pytest-html Plugin
+pip3 install pytest-html
+pytest --showlocals --html=report.html --self-contained-html
+
+--showlocals: It will show local variables in traceback.
+--html=report.html: Running this command will generate a report.html file for the output of the tests.
+--self-contained-html - In order to respect the Content Security Policy (CSP), several assets such as CSS and 
+images are stored separately by default. Passing this flag would create a self-contained report.
+
+
+Generate Interactive Output using Pytest-cov Plugin
+pip3 install pytest-cov
+pytest --showlocals --html=report.html --self-contained-html --cov=maths --cov-report=html test.py
+
+
+
+Mocking
+pip install pytest-mock
+
+Mocking
+| Method                  | Purpose                                                               |
+| ----------------------- | --------------------------------------------------------------------- |
+| `mocker.patch`          | Patch a function or object by full import path                        |
+| `mocker.patch.object`   | Patch a method or property on a specific object                       |
+| `mocker.Mock()`         | Create a generic mock object                                          |
+| `mocker.MagicMock()`    | Mock object with "magic methods" support (`__str__`, `__len__`, etc.) |
+| `mocker.PropertyMock()` | Mock a property (used with `@property`)                               |
+| `side_effect`           | Simulate exceptions or multiple return values                         |
+| `return_value`          | Specify a fixed return value                                          |
+
+
+pytest -v
+pytest -m
+pytest -q 
+
+
+
+pytest.Pytester
+pytest.Pytester is a fixture provided by the pytest testing framework for writing self-contained test suites that generate and run other tests dynamically. 
+It’s extremely useful for testing pytest plugins, code examples, or tools that themselves generate or run tests.
+
+In conftest.py
+pytest_plugins = ["pytester"]
+
+| Method                    | Description                                                                | Example                                                      |
+| ------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `makepyfile(**kwargs)`    | Create one or more `.py` files. Keys = filenames, values = file content.   | `pytester.makepyfile(test_example="def test_1(): pass")`     |
+| `makefile(ext, **kwargs)` | Create files with arbitrary extension (e.g., `.txt`, `.yaml`).             | `pytester.makefile(".txt", data="Hello World")`              |
+| `makeini(content)`        | Creates a `pytest.ini` config file.                                        | `pytester.makeini("[pytest]\\naddopts = -v")`                |
+| `makeconftest(source)`    | Creates a `conftest.py` file for plugin/hook testing.                      | `pytester.makeconftest("def pytest_addoption(parser): ...")` |
+| `mkdir(name)`             | Creates a subdirectory in the temporary test dir.                          | `dir = pytester.mkdir("subdir")`                             |
+| `copy_example(name)`      | Copies a named example file/directory into testdir. Needs example support. | Used in plugin testing.                                      |
+
+
+| Method                        | Description                                                                                                  | Example                                             |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- |
+| `runpytest(*args)`            | Run pytest in the temp directory with optional CLI args. Returns `RunResult`.                                | `result = pytester.runpytest("-v")`                 |
+| `runpytest_subprocess(*args)` | Like `runpytest` but spawns a real subprocess instead of in-process. Use when testing pytest's own behavior. | `result = pytester.runpytest_subprocess("--help")`  |
+| `run(*cmdargs)`               | Run a command as subprocess (not limited to pytest).                                                         | `result = pytester.run("python", "some_script.py")` |
+
+
+| Method            | Description                                                           | Example                    |
+| ----------------- | --------------------------------------------------------------------- | -------------------------- |
+| `getpath()`       | Get the temporary base path (as `Path`) for the test directory.       | `base = pytester.path`     |
+| `syspathinsert()` | Add testdir to the front of `sys.path`. Required for imports to work. | `pytester.syspathinsert()` |
+| `chdir()`         | Change working directory to the test directory.                       | `pytester.chdir()`         |
+
+
+result = pytester.runpytest()
+
+| Property/Method                   | Description                                 | Example                                                                |
+| --------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------- |
+| `result.ret`                      | Return code (0 = success, 1 = failed, etc.) | `assert result.ret == 0`                                               |
+| `result.stdout` / `result.stderr` | Complete standard output/error.             | `assert "PASSED" in result.stdout.str()`                               |
+| `result.stdout.lines`             | Output as list of lines.                    | `assert any("my test passed" in line for line in result.stdout.lines)` |
+| `result.assert_outcomes(...)`     | Assert pass/fail/error/skipped counts.      | `result.assert_outcomes(passed=1)`                                     |
+| `result.parseoutcomes()`          | Returns dictionary of outcome counts.       | `{"passed": 2, "failed": 1}`                                           |
+
+
+| Category       | Methods                                                                      |
+| -------------- | ---------------------------------------------------------------------------- |
+| File creation  | `makepyfile`, `makefile`, `makeini`, `makeconftest`, `mkdir`, `copy_example` |
+| Test execution | `runpytest`, `runpytest_subprocess`, `run`                                   |
+| Path utils     | `syspathinsert`, `getpath`, `chdir`                                          |
+| Result parsing | `ret`, `stdout`, `stderr`, `assert_outcomes`, `parseoutcomes`                |
